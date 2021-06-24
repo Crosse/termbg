@@ -90,6 +90,29 @@ Alright, then tweak and use the C version instead:
 It's only 13KiB (on my machine). Knock yourself out!
 
 
+## Does this work on macOS? Linux?
+
+Yes, and theoretically? Thus far, I've tested it in the following environments:
+
+| OS    | Application         | local/ssh?                      | tmux?              | tmux in ssh?       |
+| ----- | ------------        | ------------------              | ------------------ | ------------------ |
+| macOS | Terminal.app        | :heavy_check_mark:              | :heavy_check_mark: | :heavy_check_mark: |
+| macOS | iTerm.app           | :heavy_check_mark:              | :heavy_check_mark: | :heavy_check_mark: |
+| macOS | xterm (via XQuartz) | :x: (see note 1)                | (untested)         | (untested)         |
+| macOS | urxvt (via XQuartz) | :heavy_check_mark: (see note 2) | :heavy_check_mark: | :heavy_check_mark: |
+| macOS | Alacritty           | :x: (see note 1)                | (untested)         | (untested)         |
+| macOS | Kitty               | :x: (see notes 1, 3)            | (untested)         | (untested)         |
+
+(The SSH session tested was to a Linux machine, so the programs _run_, but I
+have not yet had a chance to test the various Linux/*nix terminals directly.)
+
+Notes
+1. The C version reports the correct information, so this is a bug in the Rust implementation.
+2. `urxvt` on macOS had `$TERM` set to `xterm-color`, not `rxvt-unicode`.
+3. Kitty spits out part of the terminal's response to stdout, so there may be a
+   timing issue involved.
+
+
 ## Does this work for Windows?
 
 No. Or at least, not for the native Windows command- and PowerShell
