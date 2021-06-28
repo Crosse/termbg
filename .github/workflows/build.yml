@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/**'
+      - 'src/**'
+      - 'Cargo.*'
+    tags:
+      - v*
+  pull_request:
+    paths:
+      - '.github/**'
+      - 'src/**'
+      - 'Cargo.*'
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        include:
+          - { name: linux-amd64, os: ubuntu-latest }
+          - { name: darwin-amd64, os: macos-latest }
+      fail-fast: false
+
+    steps:
+      - name: check out code
+        uses: actions/checkout@v2
+
+      - name: install rust -stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: cache
+        uses: Swatinem/rust-cache@v1
+
+      - name: build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.name }}
+          path: |
+            target/release/termbg
+            target/release/bgstyle
+
+  release:
+    needs: [build]
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+
+      - name: fix attributes
+        run: |
+          for f in artifacts/*/*; do
+              chmod +x "$f"
+              [[ $f != *darwin* ]] && strip "$f"
+          done
+
+      - name: create tarballs
+        run: |
+          export TAG=${GITHUB_REF#refs/tags/}
+          cd artifacts
+          for d in *; do
+              new_name=termbg-$d-$TAG
+              mv "${d}" "$new_name"
+              tar czf "../${new_name}.tgz" "$new_name"
+          done
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: release
+          path: 'termbg-*.tgz'
+
+      - name: create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: 'termbg-*.tgz'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
