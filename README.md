@@ -40,10 +40,12 @@ believes in its heart of hearts that the terminal is set up for light colors):
 
 ## Alright, maybe that's neat. where do I get it?
 
-Right now, you have to build the code yourself. It requires Rust. (Sorry. In the
-future there will be binaries here to download.)
+You can get the [latest
+release](https://github.com/Crosse/termbg/releases/latest) straight from this
+repo's releases.
 
-Clone the repo and run `cargo install --path .`, like so:
+Alternatively, if you already have Rust installed, you can clone the repo and
+run `cargo install --path .`, like so:
 
     $ cargo install --path .
       Installing termbg v0.1.0 (/Users/seth/code/mine/termbg)
