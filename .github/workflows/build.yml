@@ -16,6 +16,9 @@ on:
       - 'src/**'
       - 'Cargo.*'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: ${{ matrix.name }}
@@ -25,29 +28,24 @@ jobs:
       matrix:
         include:
           - { name: linux-amd64, os: ubuntu-latest }
-          - { name: darwin-amd64, os: macos-latest }
+          - { name: darwin-amd64, os: macos-15-intel }
       fail-fast: false
 
     steps:
       - name: check out code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: install rust -stable
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
+        uses: dtolnay/rust-toolchain@stable
 
       - name: cache
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release
+        run: cargo build --release
 
       - name: upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
           path: |
@@ -58,10 +56,12 @@ jobs:
     needs: [build]
     if: ${{ startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           path: artifacts
 
@@ -83,13 +83,13 @@ jobs:
           done
 
       - name: upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: release
           path: 'termbg-*.tgz'
 
       - name: create release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: 'termbg-*.tgz'
         env:
